@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZZZ 育成アシスタント | BUILD ASSISTANT</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#080b12;--panel:#111722;--panel2:#151d2b;--line:#283448;
+  --text:#f3f6fb;--muted:#93a0b5;--accent:#7c6cff;--accent2:#4fd1c5;
+  --good:#6ee7a8;--warn:#f3c969;
+}
+body{margin:0;background:
+ radial-gradient(circle at 15% 0%,rgba(124,108,255,.16),transparent 28%),
+ radial-gradient(circle at 90% 10%,rgba(79,209,197,.10),transparent 25%),var(--bg);
+ color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:28px 18px 24px;background:linear-gradient(135deg,#151b2a,#0d111b);
+ border-bottom:1px solid var(--line);box-shadow:0 10px 35px rgba(0,0,0,.22)}
+header h1{margin:0 0 6px;font-size:28px;letter-spacing:.02em}
+.wrap{max-width:1120px;margin:auto;padding:18px}
+h2{margin:0 0 14px;font-size:21px}h3{margin:0 0 10px}
+small,.muted{color:var(--muted)}
+.tabs{display:flex;gap:8px;overflow:auto;padding:8px 0 16px;position:sticky;top:0;z-index:5;
+ background:rgba(8,11,18,.86);backdrop-filter:blur(12px)}
+button,select,input{font:inherit}
+button{border:1px solid #344157;background:#151d2a;color:var(--text);border-radius:12px;padding:10px 14px;cursor:pointer;transition:.18s}
+button:hover{transform:translateY(-1px);filter:brightness(1.1)}
+button.primary{background:linear-gradient(135deg,#7468ff,#9a70ff);border-color:#8b7eff;box-shadow:0 8px 24px rgba(124,108,255,.24)}
+.tabbtn{white-space:nowrap}.tabbtn.active{background:#242b48;border-color:#7468ff;color:#fff}
+.tab{display:none}.tab.active{display:block;animation:fade .2s ease}
+@keyframes fade{from{opacity:.2;transform:translateY(3px)}to{opacity:1;transform:none}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:linear-gradient(145deg,rgba(21,29,43,.96),rgba(13,18,28,.96));
+ border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 12px 32px rgba(0,0,0,.16)}
+.card h2{display:flex;align-items:center;gap:8px}
+label{display:block;margin:8px 0 6px;color:#b9c4d6;font-size:13px}
+select,input{width:100%;padding:11px 12px;border-radius:11px;border:1px solid #344157;background:#0b111b;color:#fff;outline:none}
+select:focus,input:focus{border-color:#7468ff;box-shadow:0 0 0 3px rgba(116,104,255,.12)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#202a3b;color:#d5deeb;font-size:11px;margin:2px;border:1px solid #2e3a50}
+.good{border-color:#3e7359}.warn{border-color:#80642e}.score{font-size:26px;font-weight:800}
+.notice{padding:12px 14px;background:#111a28;border:1px solid #26344a;border-left:3px solid var(--accent);
+ border-radius:11px;margin:10px 0;color:#dbe3ef}
+.source{font-size:12px;color:#8ea1bb}.danger{color:#ffb1b1}
+.filters{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:10px;margin-bottom:14px}
+.checkbox{width:auto}
+#centerMeta{margin:10px 0 14px}
+#partyResults>.card{padding:16px}
+.team{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.member{background:linear-gradient(160deg,#111a28,#0b111b);border:1px solid #2c3a50;border-radius:14px;padding:14px;text-align:center;min-height:105px}
+.member b{font-size:15px}
+#boxList{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.agent{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;
+ background:linear-gradient(145deg,#131c2a,#0d141f);border:1px solid #253248;border-radius:13px;transition:.15s}
+.agent:hover{border-color:#53627b;transform:translateY(-1px)}
+.agent-info{min-width:0}.agent-name{font-weight:750;margin-bottom:4px}.agent label{margin:0}
+.agent input{accent-color:#7c6cff}
+#boxList:empty{display:block}
+@media(max-width:700px){
+ .filters{grid-template-columns:1fr 1fr}
+ .filters>div:first-child{grid-column:1/-1}
+ .team{grid-template-columns:1fr}
+ .wrap{padding:14px}
+ header{padding:22px 14px}
+}
+@media(max-width:430px){.filters{grid-template-columns:1fr}}
+
+.skill-grid>div{background:rgba(10,16,25,.65);border:1px solid #27364b;border-radius:14px;padding:12px}
+.skill-grid select{margin-bottom:7px}
+.skill-grid select:last-child{margin-bottom:0}
+.agent-name .pill{vertical-align:middle}
+.material-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.material-item{padding:11px 12px;border:1px solid #29384e;border-radius:12px;background:rgba(9,15,24,.72)}.material-item b{display:block;font-size:13px;margin-bottom:3px}.material-item span{color:#d7e0ee;font-size:13px}.material-item .source-mini{font-size:11px;color:#8294ad;margin-top:4px}.material-section{margin-top:12px}.material-section h4{margin:0 0 7px;font-size:14px;color:#dce6f4}@media(max-width:600px){.material-grid{grid-template-columns:1fr}}
+
+.skill-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.skill-grid>div{background:rgba(10,16,25,.72);border:1px solid #27364b;border-radius:14px;padding:13px}
+.skill-grid label{font-weight:700;color:#e7edf7}
+.skill-pair{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.skill-pair select{padding:9px 7px}
+.disk-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}
+.disk-slot{background:rgba(10,16,25,.72);border:1px solid #27364b;border-radius:14px;padding:10px}
+.disk-slot b{display:block;text-align:center;margin-bottom:7px}
+.disk-slot .disk-level{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.disk-slot select{padding:8px 5px}
+@media(max-width:900px){.skill-grid{grid-template-columns:repeat(3,1fr)}.disk-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.skill-grid{grid-template-columns:1fr 1fr}.disk-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ===== ZZZ-inspired visual redesign ===== */
+:root{
+  --bg:#090a0d;--panel:#15171b;--panel2:#1b1d21;--line:#34373d;
+  --text:#f5f5f3;--muted:#9da1a7;--accent:#f2e85c;--accent2:#72e0d0;
+  --good:#82e6a8;--warn:#f5c95d;--red:#ff6f61;--ink:#111214;
+}
+html{background:#090a0d}
+body{
+  min-height:100vh;color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 12% 5%,rgba(242,232,92,.09),transparent 22%),
+    radial-gradient(circle at 88% 12%,rgba(114,224,208,.07),transparent 20%),
+    linear-gradient(135deg,#090a0d 0%,#0e1014 48%,#090a0d 100%);
+  position:relative;overflow-x:hidden;
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.28;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,black,transparent 80%)}
+header{
+  position:relative;overflow:hidden;padding:30px 22px 26px;border-bottom:1px solid #3b3d42;
+  background:linear-gradient(110deg,#181a1d 0%,#101216 55%,#191b1e 100%);
+  box-shadow:0 16px 50px rgba(0,0,0,.38)
+}
+header:after{content:"ZZZ // BUILD ASSISTANT";position:absolute;right:24px;bottom:14px;font-size:10px;letter-spacing:.22em;color:#70747b;transform:skew(-12deg)}
+header:before{content:"";position:absolute;right:-60px;top:-90px;width:300px;height:220px;background:repeating-linear-gradient(135deg,transparent 0 15px,rgba(242,232,92,.09) 15px 17px);transform:rotate(-8deg);opacity:.55}
+header h1{position:relative;margin:0 0 8px;font-size:clamp(27px,4vw,38px);font-weight:900;letter-spacing:-.03em;text-transform:uppercase}
+header h1:before{content:"//";color:var(--accent);margin-right:9px;font-weight:900}
+header p{position:relative;margin:0;color:#b7bbc1;font-size:13px;letter-spacing:.08em}
+.wrap{max-width:1180px;margin:auto;padding:20px 18px 60px}
+.tabs{display:flex;gap:7px;overflow:auto;padding:10px 0 18px;position:sticky;top:0;z-index:20;background:linear-gradient(rgba(9,10,13,.96),rgba(9,10,13,.86));backdrop-filter:blur(14px)}
+.tabbtn{position:relative;white-space:nowrap;border:1px solid #34373d;border-radius:5px;background:#141619;color:#b9bdc3;padding:10px 18px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;clip-path:polygon(0 0,94% 0,100% 32%,100% 100%,6% 100%,0 68%)}
+.tabbtn:hover{transform:translateY(-1px);border-color:#6d7178;filter:none}
+.tabbtn.active{color:#111;background:var(--accent);border-color:var(--accent);box-shadow:0 5px 20px rgba(242,232,92,.16)}
+.tab{display:none}.tab.active{display:block;animation:zzfade .22s ease}@keyframes zzfade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.card{position:relative;background:linear-gradient(145deg,rgba(25,27,31,.97),rgba(15,17,20,.97));border:1px solid #35383e;border-radius:6px;padding:20px;margin-bottom:15px;box-shadow:0 15px 38px rgba(0,0,0,.25);overflow:hidden}
+.card:before{content:"";position:absolute;left:0;top:0;width:42px;height:3px;background:var(--accent);box-shadow:45px 0 0 rgba(242,232,92,.2)}
+.card:after{content:"";position:absolute;right:-34px;top:-34px;width:85px;height:85px;border:1px solid rgba(255,255,255,.05);transform:rotate(45deg);pointer-events:none}
+.card h2{font-size:20px;letter-spacing:.02em}.card h2:before{content:"▸";color:var(--accent);font-size:14px}
+h2,h3{font-weight:850}h3{letter-spacing:.02em}
+small,.muted{color:var(--muted)}
+button,select,input{font:inherit}
+button{border:1px solid #41454c;background:#1a1c20;color:#f3f3f1;border-radius:5px;padding:10px 14px;cursor:pointer;transition:.16s;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+button:hover{transform:translateY(-1px);border-color:#686d74;filter:none}
+button.primary{color:#111;background:var(--accent);border-color:var(--accent);font-weight:900;box-shadow:0 7px 24px rgba(242,232,92,.15)}
+select,input{width:100%;padding:11px 12px;border-radius:5px;border:1px solid #3b3f46;background:#0e1013;color:#f4f4f2;outline:none}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(242,232,92,.12)}
+label{color:#aeb2b8;font-size:12px;font-weight:750;letter-spacing:.04em}
+.grid{gap:13px}.notice{padding:13px 15px;background:linear-gradient(90deg,rgba(242,232,92,.08),rgba(242,232,92,.02));border:1px solid #46463d;border-left:3px solid var(--accent);border-radius:5px;color:#e4e5df}
+.pill{padding:4px 8px;border-radius:4px;background:#25282d;color:#d7d9dc;font-size:10px;font-weight:800;letter-spacing:.04em;border:1px solid #3a3d42}.good{border-color:#3e7359}.warn{border-color:#80642e}
+.filters{gap:9px}.agent{background:linear-gradient(145deg,#191c20,#111316);border:1px solid #32363c;border-radius:5px}.agent:hover{border-color:#686d74;transform:translateY(-2px);box-shadow:0 9px 20px rgba(0,0,0,.25)}
+#boxList{gap:9px}.agent-name{font-weight:850}.agent input{accent-color:#f2e85c}
+.team{gap:9px}.member{background:linear-gradient(150deg,#1b1e23,#111316);border:1px solid #363a40;border-radius:5px;position:relative;overflow:hidden}.member:after{content:"AGENT";position:absolute;right:7px;bottom:6px;font-size:8px;letter-spacing:.16em;color:#4d5157}.member b{font-size:15px}
+.material-grid{gap:8px}.material-item{padding:12px;border:1px solid #34383f;border-radius:5px;background:linear-gradient(145deg,#17191d,#101215)}.material-item b{font-weight:850}.material-item span{color:#e0e1df}.material-item .source-mini{color:#7e838a}
+.skill-grid{gap:8px}.skill-grid>div{background:linear-gradient(145deg,#181b1f,#111316);border:1px solid #34383f;border-radius:5px}
+.score{font-size:30px;color:var(--accent)}
+.source{color:#858b93}
+hr{border:0;border-top:1px solid #2d3035}
+@media(max-width:700px){header:after{display:none}.wrap{padding:14px 12px 45px}.tabs{margin:0 -2px}.tabbtn{padding:9px 13px}.card{padding:16px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>ZZZ 育成アシスタント</h1>
+<div class="muted">BOX・育成計算・編成シミュレーター・複数ソースの環境メモ</div>
+</div></header>
+
+<main class="wrap">
+<div class="tabs">
+<button class="tabbtn active" data-tab="grow">育成</button>
+<button class="tabbtn" data-tab="party">編成</button>
+<button class="tabbtn" data-tab="box">BOX管理</button>
+<button class="tabbtn" data-tab="news">最新情報</button>
+</div>
+
+
+<section id="grow" class="tab active">
+  <div class="card">
+    <h2>🛠️ 育成アシスタント</h2>
+    <div class="grid">
+      <div>
+        <label>キャラクター</label>
+        <select id="growChar"></select>
+      </div>
+      <div>
+        <label>キャラクターレベル</label>
+        <div class="row">
+          <select id="lvNow"></select><span>→</span><select id="lvGoal" disabled></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice">
+      <b>育成完了マークは <b>BOX管理</b> で付けられます。
+      <div class="row" style="margin-top:8px">
+        <span id="growCompleteState" class="pill">未完了</span>
+        <span class="muted">BOXで変更するとここにも反映されます。</span>
+      </div>
+    </div>
+
+    <h3 style="margin-top:18px">スキル</h3>
+    <div class="notice">目標レベルはすべて <b>Lv.12固定</b> です。現在レベルだけ選択できます。</div>
+    <p class="muted" style="margin-top:-4px">
+      ゲーム内のスキル画面に合わせた5項目。各スキルはLv.1〜12で管理します。
+      「終結スキル」はゲーム内では連携スキルと同じ育成カテゴリにまとまるため、「連携・終結」として表示します。
+    </p>
+
+    <div class="skill-grid">
+      <div><label>通常攻撃</label><div class="skill-pair"><select id="normalNow"></select><select id="normalGoal" disabled></select></div></div>
+      <div><label>回避</label><div class="skill-pair"><select id="dodgeNow"></select><select id="dodgeGoal" disabled></select></div></div>
+      <div><label>支援</label><div class="skill-pair"><select id="assistNow"></select><select id="assistGoal" disabled></select></div></div>
+      <div><label>特殊スキル</label><div class="skill-pair"><select id="specialNow"></select><select id="specialGoal" disabled></select></div></div>
+      <div><label>連携・終結スキル</label><div class="skill-pair"><select id="chainNow"></select><select id="chainGoal" disabled></select></div></div>
+    </div>
+
+    <h3 style="margin-top:20px">コアスキル</h3>
+    <div class="grid">
+      <div>
+        <label>コアスキル段階</label>
+        <div class="row">
+          <select id="coreNow"></select><span>→</span><select id="coreGoal"></select>
+        </div>
+        <div class="source" style="margin-top:6px">未開放 → A → B → C → D → E → F</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:20px">音動機</h3>
+    <div class="grid">
+      <div><label>音動機レベル</label><div class="row"><select id="wLvNow"></select><span>→</span><b>Lv.60 固定</b></div></div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:20px">ディスク</h3>
+    <div class="notice">ディスクの目標レベルはすべて <b>Lv.15固定</b> です。現在レベルだけ選択できます。</div>
+    <div id="diskGrid" class="disk-grid"></div>
+
+    <button class="primary" id="calcGrowBtn" type="button" style="margin-top:16px">育成状況を確認</button>
+    <div id="growResult" class="notice"></div>
+    <div class="source">
+      ※現在の入力値から目標までの「不足分」だけを計算します。キャラLvはLv.60固定、スキルはLv.12固定、ディスクはLv.15固定です。
+    </div>
+  </div>
+</section>
+
+<section id="party" class="tab">
+<div class="card">
+<h2>編成シミュレーター</h2>
+<div class="notice">中心キャラを全実装キャラから選択できます。BOXの所持状況を使って「所持限定」と「理想編成」の2案を分けて表示します。</div>
+<label>中心にしたいキャラ</label>
+<select id="centerChar"></select>
+<div id="centerMeta"></div>
+<button id="makePartyBtn" class="primary">✨ おすすめ編成を作る</button>
+</div>
+<div id="partyResults"></div>
+</section>
+
+<section id="box" class="tab">
+<div class="card">
+<h2>BOX管理</h2>
+<div class="filters">
+<div><label>検索</label><input id="search" placeholder="キャラ名"></div>
+<div><label>所持</label><select id="ownedFilter"><option value="all">すべて</option><option value="owned">所持のみ</option><option value="not">未所持のみ</option></select></div>
+<div><label>属性</label><select id="attrFilter"><option value="all">すべて</option><option>物理</option><option>炎</option><option>氷</option><option>電気</option><option>エーテル</option><option>風</option><option>流明</option></select></div>
+<div><label>特性</label><select id="roleFilter"><option value="all">すべて</option><option>強攻</option><option>撃破</option><option>支援</option><option>異常</option><option>防護</option><option>命破</option><option>鋭御</option></select></div>
+</div>
+<div class="row" style="margin:12px 0"><button onclick="setAll(true)">表示中を全部所持</button><button onclick="setAll(false)">表示中を全部未所持</button><span class="muted">所持状況はこの端末に保存されます。</span></div>
+<div id="boxCount" class="muted" style="margin:4px 0 10px"></div><div id="boxList"></div>
+</div>
+</section>
+
+<section id="news" class="tab"><div class="card"><h2>公式最新情報</h2>
+<div id="officialNewsStatus" class="muted">公式サイト確認済みの最新情報を表示します。</div>
+<div id="officialNewsList"></div>
+<p class="source">情報源：ゼンレスゾーンゼロ公式サイト<br><a href="https://zenless.hoyoverse.com/ja-jp/news" target="_blank" rel="noopener noreferrer">公式ニュース一覧を開く ↗</a></p></div></section>
+</main>
+
+<script>
+const agents=[["猫又", "物理", "強攻"], ["11号", "炎", "強攻"], ["クレタ", "炎", "撃破"], ["ライカン", "氷", "撃破"], ["グレース", "電気", "異常"], ["エレン", "氷", "強攻"], ["リナ", "電気", "支援"], ["朱鳶", "エーテル", "強攻"], ["星見雅", "氷", "異常"], ["青衣", "電気", "撃破"], ["ジェーン", "物理", "異常"], ["シーザー", "物理", "防護"], ["バーニス", "炎", "異常"], ["ライト", "炎", "撃破"], ["柳", "電気", "異常"], ["浅羽悠真", "電気", "強攻"], ["アストラ", "エーテル", "支援"], ["イヴリン", "炎", "強攻"], ["0号アンビー", "電気", "強攻"], ["トリガー", "電気", "撃破"], ["ヒューゴ", "氷", "強攻"], ["ビビアン", "エーテル", "異常"], ["フーフー", "炎", "撃破"], ["イーシェン", "エーテル", "命破"], ["シード", "電気", "強攻"], ["ザオ", "氷", "防護"], ["アリス", "物理", "異常"], ["柚葉", "物理", "支援"], ["瞬光", "物理", "強攻"], ["オルペウス", "炎", "強攻"], ["リュシア", "エーテル", "支援"], ["イドリー", "氷", "命破"], ["ダイアリン", "物理", "撃破"], ["盤岳", "炎", "命破"], ["千夏", "物理", "支援"], ["アリア", "エーテル", "異常"], ["南宮羽", "エーテル", "撃破"], ["シーシィア", "電気", "強攻"], ["プロメイア", "氷", "異常"], ["ヴェリナ", "風", "異常"], ["ノルムー", "炎", "撃破"], ["レミエール", "流明", "異常"], ["スターライトビリー", "物理", "命破"], ["ピュロイス", "エーテル", "強攻"], ["クラレッタ", "電気", "鋭御"], ["ロクシー", "風", "撃破"], ["シグリッド", "氷", "強攻"], ["アンビー", "電気", "撃破"], ["ニコ", "エーテル", "支援"], ["ビリー", "物理", "強攻"], ["カリン", "物理", "強攻"], ["アンドー", "電気", "強攻"], ["ベン", "炎", "防護"], ["蒼角", "氷", "支援"], ["パイパー", "物理", "異常"], ["ルーシー", "炎", "支援"], ["セス", "電気", "防護"], ["プルクラ", "物理", "撃破"], ["パン", "物理", "防護"], ["狛野真斗", "炎", "命破"]];
+const synergy={};
+const teamDB={
+"瞬光":[
+ {team:["瞬光","千夏","ダイアリン"],sources:["Game8","GameWith"],sourceNote:"Game8は3人を最強編成として掲載。GameWithも瞬光＋ダイアリンを中核に掲載し、千夏を入れ替え候補として紹介。",reason:"瞬光を表で戦わせ、千夏のエーテルベールとバフ、ダイアリンのブレイク・強制終結で瞬光の強化状態を回しやすい。"},
+ {team:["瞬光","照","ダイアリン"],sources:["GameWith"],sourceNote:"GameWith掲載の現環境編成。",reason:"照のエーテルベールとダイアリンの強制終結で瞬光の変身回数を増やす構成。"},
+ {team:["瞬光","千夏","照"],sources:["GameWith"],sourceNote:"GameWithが千夏を照の入れ替え候補として紹介。",reason:"エーテルベールを重ねて瞬光の強化状態への移行を早める代替構成。"}
+],
+"星見雅":[
+ {team:["星見雅","南宮羽","柚葉"],sources:["Game8","GameWith"],sourceNote:"両サイトが同じ3人を現行候補として掲載。",reason:"南宮羽でブレイクと極性混沌を補助し、柚葉で異常系の支援を行う雅の代表的な編成。"},
+ {team:["星見雅","柳","柚葉"],sources:["Game8","GameWith"],sourceNote:"Game8とGameWithの柳・雅軸の解説を統合。",reason:"柳の極性混沌と雅の落霜獲得を組み合わせ、柚葉で異常・混沌を支援する構成。"},
+ {team:["星見雅","柳","レミエール"],sources:["GameWith"],sourceNote:"GameWith掲載の異常3人編成。",reason:"異常3人で混沌を回しながら雅のリソースを稼ぐ構成。"}
+],
+"月城柳":[
+ {team:["月城柳","星見雅","柚葉"],sources:["Game8","GameWith"],sourceNote:"Game8の理想編成とGameWithの混沌編成を照合。",reason:"柳の極性混沌と雅の落霜獲得を軸に、柚葉が異常・混沌を支援。"},
+ {team:["月城柳","星見雅","レミエール"],sources:["GameWith"],sourceNote:"GameWith掲載の異常3人編成。",reason:"柳・雅・レミエールで異常を回し、混沌と昇華を狙う。"},
+ {team:["月城柳","セス","リナ"],sources:["GameWith"],sourceNote:"GameWith掲載の恒常寄り編成。",reason:"柳を主軸にセスとリナのバフを重ねる扱いやすい代替構成。"}
+],
+"エレン":[
+ {team:["エレン","ライト","アストラ"],sources:["Game8","GameWith"],sourceNote:"両サイトがエレン＋ライト＋アストラを現行おすすめとして掲載。",reason:"ライトのブレイクと氷属性支援、アストラの火力支援をエレンに集中させる構成。"},
+ {team:["エレン","ライト","シーザー"],sources:["Game8"],sourceNote:"Game8掲載の高難度・耐久編成。",reason:"シーザーの耐久とバフを加え、ライトでブレイクを取る安定型。"},
+ {team:["エレン","ライト","リナ"],sources:["Game8","GameWith"],sourceNote:"両サイトで代替・おすすめ候補として確認。",reason:"ライトの氷属性バフとリナの貫通率・支援でエレンを強化する構成。"}
+],
+"ジェーン":[
+ {team:["ジェーン","レミエール","ヴェリナ"],sources:["Game8","GameWith"],sourceNote:"両サイトがジェーン＋レミエール＋ヴェリナをおすすめとして掲載。",reason:"異常3人で強撃・乱流・昇華などを回し、レミエールの高火力につなげる。"},
+ {team:["ジェーン","バーニス","シーザー"],sources:["Game8"],sourceNote:"Game8の現行おすすめ。",reason:"ジェーンを表の主力にし、バーニスで熱傷・混沌、シーザーで耐久と支援を担当。"}
+],
+"レミエール":[
+ {team:["レミエール","ヴェリナ","アリア"],sources:["Game8","GameWith"],sourceNote:"両サイトの理想編成を照合。",reason:"レミエールの異常系性能をヴェリナとアリアで支え、異常3人の強みを活かす。"},
+ {team:["レミエール","ヴェリナ","ジェーン"],sources:["Game8","GameWith"],sourceNote:"両サイトでジェーン入り編成を確認。",reason:"ジェーンとレミエールで異常を回し、ヴェリナで全体を支援する構成。"}
+],
+"柳":[
+ {team:["柳","星見雅","柚葉"],sources:["Game8","GameWith"],sourceNote:"Game8とGameWithの柳・雅・柚葉編成を照合。",reason:"混沌と極性混沌で雅の落霜を稼ぎ、柚葉で異常ダメージを補助。"},
+ {team:["柳","星見雅","レミエール"],sources:["GameWith"],sourceNote:"GameWith掲載の異常3人編成。",reason:"柳と雅の異常をレミエールにつなげ、混沌を阻害せず高火力を狙う。"}
+],
+"アリス":[
+ {team:["アリス","柚葉","星見雅"],sources:["Game8"],sourceNote:"Game8掲載の雅編成。",reason:"アリスと雅の異常を柚葉で支援する構成。"},
+ {team:["アリス","柚葉","柳"],sources:["Game8"],sourceNote:"Game8掲載の柳編成。",reason:"アリスと柳で異常・混沌を狙い、柚葉で異常支援。"}
+],
+"イヴリン":[
+ {team:["イヴリン","ライト","アストラ"],sources:["Game8","GameWith"],sourceNote:"Game8とGameWithで現行おすすめとして確認。",reason:"ライトのブレイクとバフ、アストラのクイック支援を使ってイヴリンの出場時間を伸ばす。"},
+ {team:["イヴリン","ライト","ルーシー"],sources:["Game8"],sourceNote:"Game8掲載の代替編成。",reason:"汎用的な炎支援を採用した代替構成。"}
+],
+"クラレッタ":[
+ {team:["クラレッタ","ロクシー","リナ"],sources:["Game8","GameWith"],sourceNote:"現行の3.2環境データを両サイトで照合。",reason:"クラレッタを主軸に撃破と支援を組み合わせる基本構成。"}
+]
+};
+// 信頼度の高い攻略サイトに掲載された「直接的な編成例」だけを追加ソースとして保持。
+// 直接例がない場合はアプリ側で役割バランスから新規編成を生成しない。
+const trustedSourceTeams={
+  "イドリー":[
+    {team:["イドリー","リュシア","ダイアリン"],sources:["Game8","GameWith"],sourceNote:"両サイトに掲載されているイドリー軸の直接的な編成例。",reason:"サイト掲載の構成をそのまま反映。リュシアでイドリーを支援し、ダイアリンでブレイクと終結発動を担当。"},
+    {team:["イドリー","ライト","オルペウス"],sources:["Game8"],sourceNote:"Game8掲載のイドリー編成。",reason:"Game8掲載の構成をそのまま反映した別候補。"},
+    {team:["イドリー","パン","プルクラ"],sources:["Game8"],sourceNote:"Game8掲載の初心者・無課金向け編成。",reason:"Game8掲載の構成をそのまま反映した代替候補。"}
+  ],
+  "イーシェン":[
+    {team:["イーシェン","アストラ","パン"],sources:["Game8"],sourceNote:"Game8掲載の両サポーター編成。",reason:"Game8掲載の構成をそのまま反映。"}
+  ]
+};
+
+const owned=JSON.parse(localStorage.getItem("zzz_owned_v3")||"[]");
+const ownedSet=new Set(owned);
+
+function saveOwned(){localStorage.setItem("zzz_owned_v3",JSON.stringify([...ownedSet]));}
+
+
+const completeKey="zzz_completed_v3";
+const completed=JSON.parse(localStorage.getItem(completeKey)||"{}");
+
+function saveCompleted(){
+  localStorage.setItem(completeKey,JSON.stringify(completed));
+}
+
+function options(max,start=0,labels=null){
+  return Array.from({length:max-start+1},(_,i)=>{
+    const v=i+start;
+    const text=labels ? (labels[v] ?? v) : v;
+    return `<option value="${v}">${text}</option>`;
+  }).join("");
+}
+
+function setupGrowthUI(){
+  const gc=document.getElementById("growChar");
+  ["lvNow","wLvNow"].forEach(id=>document.getElementById(id).innerHTML=options(60,1));
+  const lvGoal=document.getElementById("lvGoal");
+  lvGoal.innerHTML="<option value='60'>60</option>"; lvGoal.value="60"; lvGoal.disabled=true;
+
+  const currentSkillIds=["normalNow","dodgeNow","assistNow","specialNow","chainNow"];
+  currentSkillIds.forEach(id=>document.getElementById(id).innerHTML=options(12,1));
+  ["normalGoal","dodgeGoal","assistGoal","specialGoal","chainGoal"].forEach(id=>{
+    const el=document.getElementById(id); el.innerHTML="<option value='12'>12</option>"; el.value="12"; el.disabled=true;
+  });
+
+  const coreLabels=["未開放","A","B","C","D","E","F"];
+  ["coreNow","coreGoal"].forEach(id=>{
+    document.getElementById(id).innerHTML=coreLabels.map((x,i)=>`<option value="${i}">${x}</option>`).join("");
+  });
+  document.getElementById("coreGoal").value="6";
+
+
+  const diskGrid=document.getElementById("diskGrid");
+  diskGrid.innerHTML=Array.from({length:6},(_,i)=>`
+    <div class="disk-slot">
+      <b>ディスク ${i+1}</b>
+      <div class="disk-level">
+        <select id="disk${i+1}Now" aria-label="ディスク${i+1}現在レベル">${options(15,0)}</select>
+        <select id="disk${i+1}Goal" aria-label="ディスク${i+1}目標レベル" disabled><option value="15">15</option></select>
+      </div>
+      <div class="source" style="text-align:center;margin-top:5px">現在 / 目標</div>
+    </div>`).join("");
+
+  gc.addEventListener("change",updateCompleteState);
+  document.getElementById("calcGrowBtn").addEventListener("click",showGrowthStatus);
+  updateCompleteState();
+}
+function updateCompleteState(){
+  const name=document.getElementById("growChar").value;
+  const done=!!completed[name];
+  const state=document.getElementById("growCompleteState");
+  state.textContent=done?"✓ 育成完了":"未完了";
+  state.className="pill "+(done?"good":"");
+}
+const CORE_LABELS=["未開放","A","B","C","D","E","F"];
+// エージェントのレベル間経験値。ゼンゼロ Wiki* の詳細テーブルを使用。
+const AGENT_LEVEL_XP=[50,150,250,400,600,800,1000,1250,1500,1800,1935,2065,2200,2335,2465,2600,2735,2865,3000,4680,4975,5265,5560,5855,6145,6440,6735,7025,7320,10800,11400,12000,12600,13200,13800,14400,15000,15600,16200,17100,18300,19500,20700,21900,23100,24300,25500,26700,27900,34200,36600,39000,41400,43800,46200,48600,51000,53400,55800];
+const AGENT_LEVEL_CUM=[0]; for(const x of AGENT_LEVEL_XP) AGENT_LEVEL_CUM.push(AGENT_LEVEL_CUM.at(-1)+x);
+const ROLE_BADGE={"強攻":["初級強攻認証バッジ","高級強攻認証バッジ","バンガード認証バッジ"],"撃破":["初級撃破認証バッジ","高級撃破認証バッジ","ブレイカー認証バッジ"],"異常":["初級異常認証バッジ","高級異常認証バッジ","ルーラー認証バッジ"],"支援":["初級支援認証バッジ","高級支援認証バッジ","コマンダー認証バッジ"],"防護":["初級防護認証バッジ","高級防護認証バッジ","ガードナー認証バッジ"],"命破":["初級命破認証バッジ","高級命破認証バッジ","アービター認証バッジ"],"鋭御":["初級鋭御認証バッジ","高級鋭御認証バッジ","ガードナー認証バッジ"]};
+const ATTR_CHIP={"物理":["基礎物理チップ","上級物理チップ","特化物理チップ"],"炎":["基礎着火チップ","上級着火チップ","特化着火チップ"],"氷":["基礎氷結チップ","上級氷結チップ","特化氷結チップ"],"電気":["基礎感電チップ","上級感電チップ","特化感電チップ"],"エーテル":["基礎エーテルチップ","上級エーテルチップ","特化エーテルチップ"],"風":["基礎風食チップ","上級風食チップ","特化風食チップ"],"流明":["基礎流明チップ","上級流明チップ","特化流明チップ"]};
+const CORE_MATS={
+"猫又":["深紅の震慄","殺戮を掴む掌"],"11号":["壊滅の突進","終幕のダンスシューズ"],"クレタ":["鋼鉄の悪意","活性ドライブ"],"ライカン":["追襲の骸影","終幕のダンスシューズ"],"グレース":["壊滅の突進","活性ドライブ"],"エレン":["凶刑の訃報","殺戮を掴む掌"],"リナ":["壊滅の突進","終幕のダンスシューズ"],"朱鳶":["追襲の骸影","活性ドライブ"],"青衣":["追襲の骸影","活性ドライブ"],"ジェーン":["拳、墜つ","殺戮を掴む掌"],"シーザー":["奇襲する魅影","スカーレットエンジン"],"バーニス":["奇襲する魅影","スカーレットエンジン"],"柳":["壊滅の突進","活性ドライブ"],"月城柳":["壊滅の突進","活性ドライブ"],"ライト":["深紅の震慄","スカーレットエンジン"],"星見雅":["閃く雷光","狂信の塊"],"浅羽悠真":["閃く雷光","狂信の塊"],"アストラ":["閃く雷光","終幕のダンスシューズ"],"イヴリン":["鋼鉄の悪意","スカーレットエンジン"],"0号アンビー":["断命の除伐","活性ドライブ"],"トリガー":["断命の除伐","殺戮を掴む掌"],"ビビアン":["閃く雷光","狂信の塊"],"ヒューゴ":["凶刑の訃報","終幕のダンスシューズ"],"イーシェン":["穢れた鞘翅","再創の遺殻"],"シード":["断命の除伐","再創の遺殻"],"ザオ":["蝕まれた刺","結晶化沈殿物"],"アリス":["奇怪なる毒刃","狂信の塊"],"柚葉":["奇怪なる毒刃","狂信の塊"],"瞬光":["蝕まれた刺","結晶化沈殿物"],"オルペウス":["穢れた鞘翅","スカーレットエンジン"],"リュシア":["夢蝕む残鉄","深紅の晶刺"],"イドリー":["夢蝕む残鉄","深紅の晶刺"],"ダイアリン":["奇襲する魅影","再創の遺殻"],"盤岳":["穢れた鞘翅","深紅の晶刺"],"千夏":["穢れた血塗れ羽","結晶化沈殿物"],"アリア":["拳、墜つ","結晶化沈殿物"],"南宮羽":["蝕まれた刺","餓狼の棘"],"シーシィア":["穢れた血塗れ羽","再創の遺殻"],"プロメイア":["奇怪なる毒刃","餓狼の棘"],"ヴェリナ":["穢れた血塗れ羽","深紅の晶刺"],"フーフー":["穢れた鞘翅","再創の遺殻"],"ノルムー":["鋼鉄の悪意","活性ドライブ"],"レミエール":["奇怪なる毒刃","餓狼の棘"],"スターライトビリー":["追襲の骸影","殺戮を掴む掌"],"ピュロイス":["穢れた鞘翅","スカーレットエンジン"],"クラレッタ":["穢れた血塗れ羽","再創の遺殻"],"ロクシー":["穢れた鞘翅","再創の遺殻"],"シグリッド":["凶刑の訃報","殺戮を掴む掌"],"アンビー":["凶刑の訃報","殺戮を掴む掌"],"ニコ":["凶刑の訃報","殺戮を掴む掌"],"ビリー":["追襲の骸影","殺戮を掴む掌"],"カリン":["深紅の震慄","終幕のダンスシューズ"],"アンドー":["壊滅の突進","活性ドライブ"],"ベン":["鋼鉄の悪意","活性ドライブ"],"蒼角":["凶刑の訃報","終幕のダンスシューズ"],"パイパー":["深紅の震慄","終幕のダンスシューズ"],"ルーシー":["鋼鉄の悪意","殺戮を掴む掌"],"セス":["拳、墜つ","活性ドライブ"],"プルクラ":["奇襲する魅影","スカーレットエンジン"],"パン":["鋼鉄の悪意","活性ドライブ"],"狛野真斗":["夢蝕む残鉄","深紅の晶刺"]};
+const CORE_MATS_ALIAS={"0号アンビー":"0号アンビー","フーフー":"フーフー","柚葉":"柚葉","瞬光":"瞬光","オルペウス":"オルペウス"};
+function addMat(obj,name,n){if(n>0)obj[name]=(obj[name]||0)+n;}
+function fmt(n){return Number(n).toLocaleString("ja-JP");}
+function cumulativeSkill(level){const a=[0,0,2000,5000,11000,20000,32000,50000,95000,162500,252500,365000,500000];return a[Math.max(0,Math.min(12,level))]||0;}
+function skillMatsBetween(from,to){const res={};const tiers=[[3,5],[7,15],[12,50]];const tierNames=["基礎","上級","特化"];for(let t=0;t<3;t++){const lo=t===0?2:t===1?4:8;const hi=t===0?3:t===1?7:12;const a=Math.max(from+1,lo),b=Math.min(to,hi);if(a<=b){const costs=t===0?[2,3]:t===1?[2,3,4,6]:[5,8,10,12,15];for(let lv=a;lv<=b;lv++)addMat(res,tierNames[t],costs[lv-lo]);}}return res;}
+function addDiffMats(total,part){Object.entries(part).forEach(([k,v])=>addMat(total,k,v));}
+function levelXpAt(lv){
+  lv=Math.max(1,Math.min(60,Number(lv)||1));
+  return AGENT_LEVEL_CUM[lv-1]||0;
+}
+function skillMatsBetween(from,to){
+  const res={};
+  const costs={
+    2:["基礎",2],3:["基礎",3],4:["上級",2],5:["上級",3],6:["上級",4],7:["上級",6],
+    8:["特化",5],9:["特化",8],10:["特化",10],11:["特化",12],12:["特化",15]
+  };
+  for(let lv=Math.max(2,from+1);lv<=to;lv++){
+    const [tier,n]=costs[lv]||[];
+    if(tier)addMat(res,tier,n);
+  }
+  return res;
+}
+function skillDennyBetween(from,to){
+  const costs={2:2000,3:3000,4:6000,5:9000,6:12000,7:18000,8:45000,9:67500,10:90000,11:112500,12:135000};
+  let n=0; for(let lv=Math.max(2,from+1);lv<=to;lv++)n+=costs[lv]||0; return n;
+}
+function calcGrowthMaterials(char,lvNow,coreNow,coreGoal,skillLevels,diskLevels,wLvNow,wLvGoal){
+  const a=agents.find(x=>x[0]===char); const total={}; if(!a)return total;
+  const attr=a[1],role=a[2];
+  // キャラLvは「現在Lv→60」の区間だけを計算。経験値は1Lvずつの実データから算出。
+  if(lvNow<60){
+    const xp=Math.max(0,levelXpAt(60)-levelXpAt(lvNow));
+    addMat(total,"キャラ経験値",xp);
+    addMat(total,"ベテラン調査員の記録（換算）",Math.ceil(xp/3000));
+  }
+  // Lv上限突破は、現在Lvを超えてこれから通過する昇格だけを計上。
+  const badge=ROLE_BADGE[role]||ROLE_BADGE["強攻"];
+  const thresholds=[[20,0,4,0,24000],[30,1,12,0,56000],[40,1,20,0,120000],[50,2,0,10,200000],[60,2,0,20,400000]];
+  thresholds.forEach(([lv,tier,low,high,money])=>{
+    if(lv>lvNow && lv<=60){
+      if(tier===0)addMat(total,badge[0],low);
+      if(tier===1)addMat(total,badge[1],low);
+      if(tier===2)addMat(total,badge[2],high);
+      addMat(total,"ディニー",money);
+    }
+  });
+
+  // スキルは各スキルの現在値からLv12までの差分を合算。
+  const chips=ATTR_CHIP[attr]||ATTR_CHIP["物理"];
+  let skillD=0, cages=0;
+  skillLevels.forEach(v=>{
+    v=Number(v)||1;
+    if(v<12){
+      const sm=skillMatsBetween(v,12);
+      Object.entries(sm).forEach(([tier,n])=>{
+        const idx={"基礎":0,"上級":1,"特化":2}[tier];
+        addMat(total,chips[idx],n);
+      });
+      skillD+=skillDennyBetween(v,12);
+      cages++;
+    }
+  });
+  addMat(total,"ディニー",skillD);
+  addMat(total,"アクセサリ「ハムスターケージ」",cages);
+
+  // コアスキルは現在ランクからFまでの差分。
+  const core=CORE_MATS[char]||null;
+  const coreCum=[0,5000,17000,45000,105000,205000,405000], expCum=[0,0,2,6,15,30,60], weekCum=[0,0,0,0,2,5,9];
+  if(coreNow<coreGoal){
+    addMat(total,"ディニー",coreCum[coreGoal]-coreCum[coreNow]);
+    if(core){
+      addMat(total,"高次元データ："+core[0],expCum[coreGoal]-expCum[coreNow]);
+      addMat(total,"高等素材："+core[1],weekCum[coreGoal]-weekCum[coreNow]);
+    }else{
+      addMat(total,"高次元データ（キャラ別）",expCum[coreGoal]-expCum[coreNow]);
+      addMat(total,"高等素材（キャラ別）",weekCum[coreGoal]-weekCum[coreNow]);
+    }
+  }
+
+  // ディスクは各6枚について現在Lv→15の経験値差を計算。
+  const diskXp=[0,480,1200,2400,3840,5520,7680,10080,12720,15840,19440,23520,28560,34320,40800,48000];
+  let diskNeed=0;
+  diskLevels.forEach(v=>{diskNeed+=Math.max(0,diskXp[15]-diskXp[Number(v)||0]);});
+  if(diskNeed>0)addMat(total,"ディスク経験値（エーテル助剤換算）",diskNeed);
+
+  // 音動機のLv差分も現在Lv→設定目標Lvだけを計算。
+  if(wLvNow<wLvGoal){
+    const weaponXpAt=[1,10,20,30,40,50,60], weaponXpCum=[0,4000,20000,60000,150000,300000,600000];
+    function wx(lv){if(lv<=1)return 0;let i=weaponXpAt.findIndex(x=>x>=lv);if(i<0)return 600000;if(i===0)return 0;return Math.round(weaponXpCum[i-1]+(weaponXpCum[i]-weaponXpCum[i-1])*(lv-weaponXpAt[i-1])/(weaponXpAt[i]-weaponXpAt[i-1]));}
+    addMat(total,"音動機経験値素材（換算）",Math.ceil((wx(wLvGoal)-wx(wLvNow))/3000));
+  }
+  return total;
+}
+function materialHtml(total){
+  const entries=Object.entries(total).filter(([,v])=>v>0);
+  if(!entries.length)return `<div class="material-section"><h4>不足素材</h4><div class="pill good">目標までの追加素材はありません 🎉</div></div>`;
+  return `<div class="material-section"><h4>目標まであと必要な素材</h4><div class="material-grid">${entries.map(([k,v])=>`<div class="material-item"><b>${k}</b><span>× ${fmt(v)}</span></div>`).join("")}</div></div>`;
+}
+function showGrowthStatus(){
+  const char=document.getElementById("growChar").value;
+  const lvNow=+document.getElementById("lvNow").value, lvGoal=60;
+  const coreNow=+document.getElementById("coreNow").value, coreGoal=+document.getElementById("coreGoal").value;
+  const skillNames=[["通常攻撃","normalNow"],["回避","dodgeNow"],["支援","assistNow"],["特殊スキル","specialNow"],["連携・終結","chainNow"]];
+  const skillLevels=skillNames.map(([,id])=>+document.getElementById(id).value);
+  const skillText=skillNames.map(([n,id])=>`${n} ${document.getElementById(id).value}→12`).join(" / ");
+  const diskLevels=Array.from({length:6},(_,i)=>+document.getElementById(`disk${i+1}Now`).value);
+  const diskText=diskLevels.map((v,i)=>`D${i+1} ${v}→15`).join(" / ");
+  const wNow=+document.getElementById("wLvNow").value,wGoal=60;
+  const total=calcGrowthMaterials(char,lvNow,coreNow,coreGoal,skillLevels,diskLevels,wNow,wGoal);
+  const xpNeed=Math.max(0,levelXpAt(60)-levelXpAt(lvNow));
+  const pct=Math.round((lvNow/60)*100);
+  document.getElementById("growResult").innerHTML=`
+    <b>${char} の不足育成量</b>
+    <div class="notice" style="margin-top:10px"><b>キャラレベル</b><br>Lv.${lvNow} → Lv.60（進捗 ${pct}%）<br>あと経験値 <b>${fmt(xpNeed)} EXP</b> / ベテラン調査員の記録換算 <b>${Math.ceil(xpNeed/3000)}</b>個</div>
+    <div class="notice"><b>スキル</b><br>${skillText}</div>
+    <div class="notice"><b>コアスキル</b> ${CORE_LABELS[coreNow]} → ${CORE_LABELS[coreGoal]}<br><b>音動機</b> Lv.${wNow} → Lv.60<br><b>ディスク</b> ${diskText}</div>
+    ${materialHtml(total)}
+    <div class="source" style="margin-top:10px">「現在値→目標値」の差分だけを計算しています。キャラLvの経験値テーブルと昇格素材、スキル素材はゼンゼロ Wiki*・Game8等の掲載値を照合しています。ベテラン換算は3,000EXP/個として表示します。</div>`;
+}
+function fillSelects(){
+  const grow=document.getElementById("growChar");
+  const center=document.getElementById("centerChar");
+  const opts=agents.map(a=>`<option value="${a[0]}">${a[0]}（${a[1]}・${a[2]}）</option>`).join("");
+  grow.innerHTML=opts;
+  center.innerHTML=opts;
+  center.addEventListener("change",showCenter);
+  showCenter();
+}
+
+function showCenter(){
+  const selected=document.getElementById("centerChar").value;
+  const a=agents.find(x=>x[0]===selected);
+  if(!a)return;
+  document.getElementById("centerMeta").innerHTML=
+    `<span class="pill">${a[1]}</span><span class="pill">${a[2]}</span>`;
+}
+
+function scoreCandidate(center,c,sourceCount=0){
+  let score=50;
+  if(c[2]==="支援")score+=16;
+  if(c[2]==="撃破")score+=14;
+  if(c[2]==="異常")score+=10;
+  if(c[1]===center[1])score+=4;
+  return score+sourceCount*8;
+}
+
+function rankSourceTeams(list,center,allowUnowned){
+  return (list||[])
+    .filter(x=>x.team.every(n=>n===center[0]||(allowUnowned||ownedSet.has(n))))
+    .map(x=>({...x,score:x.sources.length*25}))
+    .sort((a,b)=>(b.sources.length-a.sources.length)||(b.score-a.score))
+    .slice(0,4);
+}
+
+function getTeamOptions(center,allowUnowned){
+  // まず既登録のサイト掲載編成を使用。ここでは新しい編成を生成しない。
+  const registered=rankSourceTeams(teamDB[center[0]],center,allowUnowned);
+  if(registered.length)return registered;
+
+  // 既登録DBにない場合も、信頼度の高いサイトから取得済みの直接例だけを使用。
+  const trusted=rankSourceTeams(trustedSourceTeams[center[0]],center,allowUnowned);
+  return trusted;
+}
+
+function renderTeamOption(opt,center,index,ideal){
+  const members=opt.team.slice(1).map(name=>agents.find(a=>a[0]===name)).filter(Boolean);
+  return `<div class="card ${index===0?"good":""}">
+    <div class="row" style="justify-content:space-between">
+      <h3>候補${index+1} ${index===0?"⭐おすすめ":""}</h3>
+      <span class="pill">${ideal?"理想編成":"所持限定"}</span>
+    </div>
+    <div class="team">
+      <div class="member"><b>${center[0]}</b><br><span class="pill">${center[1]}</span><span class="pill">${center[2]}</span><br><span class="source">${ownedSet.has(center[0])?"所持":"未所持"}</span></div>
+      ${members.map(c=>`<div class="member"><b>${c[0]}</b><br><span class="pill">${c[1]}</span><span class="pill">${c[2]}</span><br><span class="source">${ownedSet.has(c[0])?"所持":"未所持"}</span></div>`).join("")}
+    </div>
+    <p>${opt.reason}</p>
+    <p class="source">情報源：${opt.sources.join(" / ")}${opt.sourceNote?`<br>${opt.sourceNote}`:""}</p>
+    <p class="source">${opt.sources.length>=2?"✓ 複数サイトで確認":"○ 1サイトで確認"}</p>
+  </div>`;
+}
+
+function makeParty(){
+  const center=agents.find(a=>a[0]===document.getElementById("centerChar").value);
+  if(!center)return;
+
+  const ownedOptions=getTeamOptions(center,false);
+  const idealOptions=getTeamOptions(center,true);
+  const results=document.getElementById("partyResults");
+
+  let html=`<div class="notice"><b>${center[0]}</b> を中心に編成候補を作成しました。<br>Game8・GameWithなど信頼度の高いサイトに掲載された<b>直接的な編成例をそのまま反映</b>します。直接例が確認できない場合、アプリ側で新しい編成を自動生成しません。</div>`;
+
+  html+=`<div class="card"><h2>① 所持キャラだけで組む</h2>`;
+  if(!ownedOptions.length){
+    html+=`<div class="notice warn">所持キャラだけでは3人編成を作れる候補がありません。BOXの所持設定を確認してください。</div>`;
+  }else{
+    html+=ownedOptions.map((o,i)=>renderTeamOption(o,center,i,false)).join("");
+  }
+  html+=`</div>`;
+
+  html+=`<div class="card"><h2>② 未所持も含めたおすすめ</h2>`;
+  if(!idealOptions.length){
+    html+=`<div class="notice warn">このキャラについて、登録済みの信頼できる攻略サイトに直接掲載された編成例を確認できませんでした。<br>アプリ側で役割バランスから勝手に編成を作ることはせず、サイト掲載の直接例のみを表示します。</div>`;
+  }else{
+    html+=idealOptions.map((o,i)=>renderTeamOption(o,center,i,true)).join("");
+  }
+  html+=`</div>`;
+
+  results.innerHTML=html;
+}
+
+function renderBox(){
+  const q=document.getElementById("search").value.trim();
+  const of=document.getElementById("ownedFilter").value;
+  const af=document.getElementById("attrFilter").value;
+  const rf=document.getElementById("roleFilter").value;
+  const list=agents.filter(a=>
+    (!q||a[0].includes(q)) &&
+    (of==="all"||(of==="owned"&&ownedSet.has(a[0]))||(of==="not"&&!ownedSet.has(a[0]))) &&
+    (af==="all"||a[1]===af) &&
+    (rf==="all"||a[2]===rf)
+  );
+
+  document.getElementById("boxCount").textContent=`表示 ${list.length} / ${agents.length} キャラ`;
+
+  document.getElementById("boxList").innerHTML=list.map(a=>{
+    const safe=a[0].replaceAll("'","\\'");
+    const done=!!completed[a[0]];
+    return `<div class="agent" data-agent-name="${safe}">
+      <div class="agent-info">
+        <div class="agent-name">${a[0]} ${done?'<span class="pill good">育成完了</span>':""}</div>
+        <span class="pill">${a[1]}</span><span class="pill">${a[2]}</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        <label style="margin:0"><input class="checkbox owncheck" type="checkbox" ${ownedSet.has(a[0])?"checked":""} onchange="toggleOwned('${safe}',this.checked)"> 所持</label>
+        <button type="button" onclick="toggleCompleted('${safe}')">${done?"✓ 育成完了":"育成完了にする"}</button>
+      </div>
+    </div>`;
+  }).join("")||"<p class='muted'>該当キャラなし</p>";
+}
+
+function toggleCompleted(name){
+  completed[name]=!completed[name];
+  saveCompleted();
+  updateCompleteState();
+  renderBox();
+}
+
+function toggleOwned(name,on){
+  if(on)ownedSet.add(name);else ownedSet.delete(name);
+  saveOwned();
+  renderBox();
+}
+
+function setAll(on){
+  document.querySelectorAll(".owncheck").forEach(cb=>{
+    const name=cb.closest(".agent").dataset.agentName;
+    if(on)ownedSet.add(name);else ownedSet.delete(name);
+  });
+  saveOwned();
+  renderBox();
+}
+
+document.querySelectorAll(".tabbtn").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.getElementById(b.dataset.tab).classList.add("active");
+  });
+});
+
+["search","ownedFilter","attrFilter","roleFilter"].forEach(id=>{
+  document.getElementById(id).addEventListener("input",renderBox);
+});
+
+fillSelects();
+setupGrowthUI();
+renderBox();
+
+const makePartyBtn=document.getElementById("makePartyBtn");
+if(makePartyBtn)makePartyBtn.addEventListener("click",makeParty);
+
+const EMBEDDED_OFFICIAL_NEWS={
+  updatedAt:"2026/10/09 公式サイト確認済み",
+  items:[
+    {date:"2026/10/07",title:"ハッピーバースデー、イヴリン｜ンナ！おかけになった番号は現在おつなぎできません",url:"https://zenless.hoyoverse.com/ja-jp/news"},
+    {date:"2026/10/05",title:"『ゼンレスゾーンゼロ』Ver.3.3「もう一度、空へと飛び立って」予告番組のお知らせ",url:"https://zenless.hoyoverse.com/m/ja-jp/news/166552"},
+    {date:"2026/10/04",title:"ハッピーバースデー、ライカン｜夕暮れの見守り",url:"https://zenless.hoyoverse.com/ja-jp/news"},
+    {date:"2026/10/01",title:"『ゼンレスゾーンゼロ』2026年10月カレンダー壁紙",url:"https://zenless.hoyoverse.com/ja-jp/news"},
+    {date:"2026/10/01",title:"「ホブリング・クロウ奇探録」イベント詳細",url:"https://zenless.hoyoverse.com/ja-jp/news"},
+    {date:"2026/09/30",title:"秘密と、過去と、彼女たちと｜Ver.3.2最新情報一覧（後半）",url:"https://zenless.hoyoverse.com/ja-jp/news"}
+  ]
+};
+
+async function loadOfficialNews(){
+  const status=document.getElementById("officialNewsStatus");
+  const list=document.getElementById("officialNewsList");
+  if(!status||!list)return;
+  const render=(data,label="")=>{
+    const items=Array.isArray(data?.items)?data.items:[];
+    status.innerHTML=`${escapeHtml(data?.updatedAt||"公式サイト確認済み")}${label?` <span class="pill">${escapeHtml(label)}</span>`:""}`;
+    list.innerHTML=items.slice(0,10).map(x=>`<div class="notice"><b>${escapeHtml(x.date||"")}</b> ${escapeHtml(x.title||"")}${x.url?`<div style="margin-top:6px"><a href="${escapeAttr(x.url)}" target="_blank" rel="noopener noreferrer">公式サイトで見る ↗</a></div>`:""}</div>`).join("")||'<div class="notice">表示できるニュースがありません。</div>';
+  };
+
+  // 単体HTMLでも必ず表示できるよう、公式サイト確認済みのニュースを内蔵している。
+  render(EMBEDDED_OFFICIAL_NEWS,"内蔵データ");
+  try{
+    const r=await fetch("data/official-news.json?ts="+Date.now(),{cache:"no-store"});
+    if(r.ok){
+      const remote=await r.json();
+      if(Array.isArray(remote?.items)&&remote.items.length){
+        localStorage.setItem("zzz_official_news_cache",JSON.stringify(remote));
+        render(remote,"自動更新データ");
+      }
+    }
+  }catch(e){
+    // file:// の単体HTMLではfetchが制限されることがあるため、内蔵データをそのまま表示する。
+  }
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));}
+function escapeAttr(s){return escapeHtml(s);}
+
+loadOfficialNews();
+</script>
+</body>
+</html>
